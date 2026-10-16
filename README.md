@@ -1,149 +1,148 @@
-# OrangeHRM QA Automation Portfolio
+# OrangeHRM UI Test Automation
 
-A beginner-friendly UI test automation project built with **Python**, **pytest**, and **Playwright** against the OrangeHRM open-source demo application.
+A UI test automation project built with **Python, Playwright, and pytest** to validate key workflows and functionality in the OrangeHRM demo application.
 
-The project demonstrates browser-based functional testing, reusable login setup, positive and negative scenarios, and assertions using Playwright's `expect`.
+The project focuses on authentication, employee management, employee search, form validation, navigation, and popup handling.
 
 ## Tech Stack
 
-- Python
-- pytest
-- Playwright
-- pytest-playwright
-- OrangeHRM Open Source Demo
+- **Python** — Programming language
+- **Playwright** — Browser automation
+- **pytest** — Test execution and organization
+- **Git & GitHub** — Version control and project hosting
+
+## Test Coverage
+
+### 1. Authentication
+- Verify successful login with valid credentials.
+- Verify login failure with an invalid password.
+- Verify required-field validation when the username is empty.
+- Verify logout and redirection to the login page.
+
+### 2. Employee Management
+- Add a new employee using a generated Employee ID.
+- Verify that duplicate Employee IDs are rejected.
+- Search for the newly created employee to verify creation.
+
+### 3. PIM — Employee Search
+- Search for an employee using an Employee ID.
+- Verify the no-results state for an unknown Employee ID.
+- Verify search behavior when the Employee ID field is empty.
+- Search for an employee by name.
+- Select an employee from the autocomplete suggestions.
+- Verify that the Reset button clears search filters.
+
+### 4. Navigation and Popups
+- Verify that the Help button opens the expected support page in a new tab.
+- Verify that the Upgrade button opens the expected OrangeHRM upgrade page in a new tab.
 
 ## Project Structure
 
 ```text
-QA-Automation/
+Orange-HRM-Automation/
 ├── conftest.py
+├── pytest.ini
+├── requirements.txt
 ├── test_login.py
 ├── test_PIM_search.py
 ├── test_add_employee.py
 ├── test_help_button.py
 ├── test_upgrade_button.py
-├── requirements.txt
-├── pytest.ini
 ├── .gitignore
 └── README.md
 ```
 
-Your filenames may differ slightly. Update this tree if you rename or add test files.
+## Getting Started
 
-## Test Coverage
+### Prerequisites
 
-### Login (`test_login.py`)
-- Successful login
-- Invalid password
-- Required-field validation for an empty username
-- Logout, if the test is passing in the current demo environment
+- Python installed on your system
+- Git
+- Visual Studio Code or another code editor
 
-### PIM Employee Search (`test_PIM_search.py`)
-- Search by Employee ID
-- Search with no matching result
-- Search with an empty Employee ID
-- Search by employee name
-- Select an autocomplete suggestion
-- Reset search filters
+### Installation
 
-### Add Employee (`test_add_employee.py`)
-- Add an employee with a generated Employee ID
-- Attempt to add an employee using an existing Employee ID
-- Verify an employee can be found by Employee ID
+1. Clone the repository:
 
-### Navigation / External Links
-- Help link opens the expected help page (`test_help_button.py`)
-- Upgrade link opens the expected upgrade page (`test_upgrade_button.py`)
+   ```bash
+   git clone https://github.com/moodeh2001/Orange-HRM-Automation.git
+   cd Orange-HRM-Automation
+   ```
 
-The OrangeHRM demo is a shared public environment. Its data and UI can change, so a test that depends on a particular employee or ID may need updating.
+2. Create and activate a virtual environment:
 
-## Prerequisites
+   **Windows PowerShell**
 
-- Python 3.10 or newer
-- Google Chrome is not required; Playwright manages its own browser binaries.
-- Git, if you want to push the project to GitHub
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\Activate.ps1
+   ```
 
-## Setup
+3. Install the project dependencies:
 
-Open PowerShell in the project folder.
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-### 1. Create and activate a virtual environment
+4. Install the Playwright Chromium browser:
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
+   ```bash
+   playwright install chromium
+   ```
 
-If PowerShell blocks activation, you can run the commands using the Python executable inside `.venv`, or follow your organization's approved PowerShell policy. Do not change security policy settings blindly.
+## Running the Tests
 
-### 2. Install dependencies
+Run the complete test suite:
 
-```powershell
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 3. Install Playwright browsers
-
-```powershell
-playwright install
-```
-
-If you only want Chromium:
-
-```powershell
-playwright install chromium
-```
-
-## Run Tests
-
-Run all tests:
-
-```powershell
+```bash
 pytest -v
 ```
 
-Run tests with a visible browser:
+Run tests with the browser visible:
 
-```powershell
+```bash
 pytest -v --headed
 ```
 
-Run one file:
+Run a specific test file:
 
-```powershell
-pytest -v test_login.py --headed
+```bash
+pytest -v test_login.py
 ```
 
-Run one test function:
+Run an individual test:
 
-```powershell
-pytest -v test_login.py::test_login_success --headed
+```bash
+pytest -v test_login.py::test_login_invalid_password
 ```
 
-Slow the browser down to observe actions:
+Run tests with a delay between browser actions:
 
-```powershell
+```bash
 pytest -v --headed --slowmo 700
 ```
 
-## Notes About Test Data and Independence
+## Implementation Highlights
 
-- The tests use the public OrangeHRM demo site, which may be reset or changed at any time.
-- Generated IDs reduce collisions but do not guarantee uniqueness.
-- Prefer making each test independent: a test that verifies an employee should create that employee itself, then search for the same ID.
-- Avoid relying on execution order or on data created by another test. In particular, if multiple tests share a module-level `employee_id`, the duplicate-ID test depends on the employee-creation test having already created that ID. Consider a dedicated fixture or generate test data within each test.
-- Keep test data and assertions predictable. If an assertion depends on an employee already present in the shared demo, document that dependency.
+- Uses Playwright's role-based and text-based locators for interacting with UI elements.
+- Uses Playwright assertions to verify page URLs, visible elements, and expected application behavior.
+- Uses a reusable `login_as_admin` helper to reduce repeated login setup.
+- Uses pytest fixtures to manage browser page setup.
+- Uses `page.expect_popup()` to handle and verify pages opened in new tabs.
+- Generates an Employee ID dynamically for employee creation tests.
+- Configures the browser context locale to English for consistent test execution.
 
-## Before Publishing
+## Test Environment
 
-- Run the full suite and confirm the expected tests pass.
-- Remove debugging code and unused imports.
-- Confirm the test names and file names in this README match the repository.
-- Never commit passwords, access tokens, personal data, `.venv`, `__pycache__`, or Playwright test artifacts.
-- Do not claim the tests are fully independent unless each one can pass when run by itself.
+The tests run against the publicly available OrangeHRM demo application.
+
+Because this is a shared demo environment, application data, employee records, and external pages may change over time. Test results can therefore depend on the current state and availability of the demo application.
 
 ## Author
 
-Mohammad Odeh  
-QA Automation Portfolio Project
+**Mohammad Ahmad Odeh**
+
+Computer Engineer | Aspiring QA Automation Engineer
+
+GitHub: [moodeh2001](https://github.com/moodeh2001)
+
