@@ -8,6 +8,8 @@ from helpers.employees import (
     field,
     open_employee_list,
     search_by_id,
+    search_employees,
+    wait_for_employee_results,
 )
 
 
@@ -47,7 +49,7 @@ def test_search_empty_id(admin_page, employee):
 def test_search_by_name(admin_page, employee):
     open_employee_list(admin_page)
     field(admin_page, "Employee Name").locator("input").fill(employee["first_name"])
-    admin_page.get_by_role("button", name="Search", exact=True).click()
+    search_employees(admin_page)
     expect(employee_row(admin_page, employee["id"])).to_have_count(1)
     expect(admin_page.locator(".oxd-table-body").get_by_role("row")).to_have_count(1)
 
@@ -62,7 +64,7 @@ def test_search_autocomplete(admin_page, employee):
         rf"{re.escape(employee['first_name'])}\s+{re.escape(employee['last_name'])}"
     )
     expect(field(admin_page, "Employee Name").locator("input")).to_have_value(selected_name)
-    admin_page.get_by_role("button", name="Search", exact=True).click()
+    search_employees(admin_page)
     expect(employee_row(admin_page, employee["id"])).to_have_count(1)
 
 
@@ -87,7 +89,12 @@ def test_reset_filters(admin_page, employee):
     expect(status).to_have_text("Freelance")
     expect(include).to_have_text("Past Employees Only")
 
-    admin_page.get_by_role("button", name="Reset", exact=True).click()
+    with admin_page.expect_response(
+        lambda response: "/api/v2/pim/employees?" in response.url
+        and response.request.method == "GET"
+    ) as response_info:
+        admin_page.get_by_role("button", name="Reset", exact=True).click()
+    wait_for_employee_results(admin_page, response_info.value)
     expect(employee_name).to_have_value("")
     expect(employee_id).to_have_value("")
     expect(supervisor).to_have_value("")

@@ -31,7 +31,7 @@ python -m pytest -v tests/test_employees.py::test_duplicate_employee_id
 python -m pytest -v --headed --slowmo 300
 ```
 
-Each employee test creates its own records and can run individually. Fixtures attempt cleanup even on failure, verify the generated name and ID before deleting, and report cleanup failures as teardown errors. The absent-ID test deletes its own record before searching for that ID.
+Each employee test creates its own records and can run individually. Fixtures attempt cleanup even on failure, verify the generated name and ID before deleting, and report cleanup failures as teardown errors. Cleanup uses a separate page with the same login cookies so pending test-page requests cannot interfere. Search and Reset actions wait for their responses and rendered results before proceeding. The absent-ID test deletes its own record before searching for that ID.
 
 ## Configuration
 

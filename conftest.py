@@ -38,11 +38,16 @@ def employee_factory(admin_page):
 
     # Try every cleanup even if one record fails; report failures as teardown errors.
     errors = []
-    for employee in reversed(employees):
-        try:
-            delete_employee_if_present(admin_page, employee)
-        except Exception as error:
-            errors.append(f"{employee['id']}: {error}")
+    # Share the login cookies, but isolate cleanup from pending test-page requests.
+    cleanup_page = admin_page.context.new_page()
+    try:
+        for employee in reversed(employees):
+            try:
+                delete_employee_if_present(cleanup_page, employee)
+            except Exception as error:
+                errors.append(f"{employee['id']}: {error}")
+    finally:
+        cleanup_page.close()
     if errors:
         pytest.fail("Employee cleanup failed:\n" + "\n".join(errors))
 

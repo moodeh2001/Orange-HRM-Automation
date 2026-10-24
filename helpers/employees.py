@@ -59,6 +59,11 @@ def create_employee(page: Page, employee: dict):
 
 def search_by_id(page: Page, employee_id: str):
     field(page, "Employee Id").locator("input").fill(employee_id)
+    search_employees(page)
+
+
+def search_employees(page: Page):
+    employee_id = field(page, "Employee Id").locator("input").input_value()
     # Wait for this search response so assertions cannot read the previous results.
     with page.expect_response(
         lambda response: "/api/v2/pim/employees?" in response.url
