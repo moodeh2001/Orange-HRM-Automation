@@ -1,142 +1,82 @@
 # OrangeHRM UI Test Automation
 
-A UI test automation project built with **Python, Playwright, and pytest** to validate key workflows and functionality in the OrangeHRM demo application.
+A UI test automation project using Python, Playwright, and pytest. Small helpers and fixtures keep the tests easy to understand.
 
-The project focuses on authentication, employee management, employee search, form validation, navigation, and popup handling.
+## Coverage
 
-## Tech Stack
+17 Chromium test cases cover login success, invalid credentials, three missing-field combinations, logout, employee creation, duplicate IDs, creation verification, search by ID and name, absent and empty IDs, autocomplete, resetting five filters, and Help/Upgrade popups.
 
-- **Python** — Programming language
-- **Playwright** — Browser automation
-- **pytest** — Test execution and organization
-- **Git & GitHub** — Version control and project hosting
+## Setup
 
-## Test Coverage
+Use Python 3.12 or 3.13. CI uses Python 3.12.
 
-### 1. Authentication
-- Verify successful login with valid credentials.
-- Verify login failure with an invalid password.
-- Verify required-field validation when the username is empty.
-- Verify logout and redirection to the login page.
+```powershell
+git clone https://github.com/moodeh2001/Orange-HRM-Automation.git
+cd Orange-HRM-Automation
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m playwright install chromium
+```
 
-### 2. Employee Management
-- Add a new employee using a generated Employee ID.
-- Verify that duplicate Employee IDs are rejected.
-- Search for the newly created employee to verify creation.
+On Linux use `python -m playwright install --with-deps chromium`.
 
-### 3. PIM — Employee Search
-- Search for an employee using an Employee ID.
-- Verify the no-results state for an unknown Employee ID.
-- Verify search behavior when the Employee ID field is empty.
-- Search for an employee by name.
-- Select an employee from the autocomplete suggestions.
-- Verify that the Reset button clears search filters.
+## Running tests
 
-### 4. Navigation and Popups
-- Verify that the Help button opens the expected support page in a new tab.
-- Verify that the Upgrade button opens the expected OrangeHRM upgrade page in a new tab.
+```powershell
+python -m pytest -v
+python -m pytest -v --headed
+python -m pytest -v tests/test_login.py
+python -m pytest -v tests/test_employees.py::test_duplicate_employee_id
+python -m pytest -v --headed --slowmo 300
+```
 
-## Project Structure
+Each employee test creates its own records and can run individually. Fixtures attempt cleanup even on failure, verify the generated name and ID before deleting, and report cleanup failures as teardown errors. The absent-ID test deletes its own record before searching for that ID.
+
+## Configuration
+
+| Environment variable | Default |
+| --- | --- |
+| BASE_URL | https://opensource-demo.orangehrmlive.com |
+| ADMIN_USERNAME | Admin |
+| ADMIN_PASSWORD | admin123 |
+
+These are the public demo's published credentials. Override settings with environment variables, for example `$env:BASE_URL = "https://your-test-instance.example"` in PowerShell. Environment variables are read directly; `.env` files are not automatically loaded. Use a test instance where creating and deleting employees is permitted.
+
+## Project structure
 
 ```text
-Orange-HRM-Automation/
-├── conftest.py
-├── pytest.ini
-├── requirements.txt
-├── test_login.py
-├── test_PIM_search.py
-├── test_add_employee.py
-├── test_help_button.py
-├── test_upgrade_button.py
-├── .gitignore
-└── README.md
+.github/workflows/tests.yml
+helpers/
+    auth.py
+    employees.py
+tests/
+    test_login.py
+    test_employees.py
+    test_pim_search.py
+    test_navigation.py
+conftest.py
+pytest.ini
+requirements.txt
 ```
 
-## Getting Started
+`auth.py` contains configuration and login. `employees.py` contains form, search, and cleanup functions. `conftest.py` provides browser settings, authenticated pages, and employee fixtures.
 
-### Prerequisites
+## Failure evidence and CI
 
-- Python installed on your system
-- Git
-- Visual Studio Code or another code editor
+Failed tests retain screenshots and Playwright traces under `test-results/`.
 
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/moodeh2001/Orange-HRM-Automation.git
-   cd Orange-HRM-Automation
-   ```
-
-2. Create and activate a virtual environment:
-
-   **Windows PowerShell**
-
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1
-   ```
-
-3. Install the project dependencies:
-
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
-
-4. Install the Playwright Chromium browser:
-
-   ```bash
-   playwright install chromium
-   ```
-
-## Running the Tests
-
-Run the complete test suite:
-
-```bash
-pytest -v
+```powershell
+python -m playwright show-trace path/to/trace.zip
 ```
 
-Run tests with the browser visible:
+GitHub Actions runs Chromium tests on pushes, pull requests, and manual dispatch. JUnit results and failure evidence are uploaded as `playwright-results`, retained for seven days. Dependency versions are constrained in `requirements.txt`, but not fully locked.
 
-```bash
-pytest -v --headed
-```
+## Limitations
 
-Run a specific test file:
+The public demo is shared: records can change or reset, and application or external-page outages can fail tests. Generated IDs reduce collisions without guaranteeing uniqueness. Cleanup failures identify the record ID for investigation. The suite does not automatically retry failures or run in parallel.
 
-```bash
-pytest -v test_login.py
-```
-
-Run an individual test:
-
-```bash
-pytest -v test_login.py::test_login_invalid_password
-```
-
-Run tests with a delay between browser actions:
-
-```bash
-pytest -v --headed --slowmo 700
-```
-
-## Implementation Highlights
-
-- Uses Playwright's role-based and text-based locators for interacting with UI elements.
-- Uses Playwright assertions to verify page URLs, visible elements, and expected application behavior.
-- Uses a reusable `login_as_admin` helper to reduce repeated login setup.
-- Uses pytest fixtures to manage browser page setup.
-- Uses `page.expect_popup()` to handle and verify pages opened in new tabs.
-- Generates an Employee ID dynamically for employee creation tests.
-- Configures the browser context locale to English for consistent test execution.
-
-## Test Environment
-
-The tests run against the publicly available OrangeHRM demo application.
-
-Because this is a shared demo environment, application data, employee records, and external pages may change over time. Test results can therefore depend on the current state and availability of the demo application.
+The empty-ID test verifies that clearing the filter returns a nonempty employee list, rather than checking every results page. The Reset test checks the five filters it changes.
 
 ## Author
 
@@ -145,4 +85,3 @@ Because this is a shared demo environment, application data, employee records, a
 Computer Engineer | Aspiring QA Automation Engineer
 
 GitHub: [moodeh2001](https://github.com/moodeh2001)
-
